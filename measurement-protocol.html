@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facial Measurement. Photo and marking protocol</title>
+<style>
+  :root{
+    --ink:#16181d; --ink2:#454b57; --ink3:#6f7683;
+    --line:#dcdfe5; --line2:#eceef2;
+    --accent:#1f6f6b; --accent-soft:#e8f2f1;
+    --warn:#8a4b12; --warn-soft:#fbf1e6;
+    --dot:#e0562b; --track:#2b6fe0; --ref:#8b2be0;
+    --bg:#ffffff; --panel:#f7f8fa;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:32px 24px 64px;
+    background:var(--panel); color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{
+    max-width:940px; margin:0 auto; background:var(--bg);
+    border:1px solid var(--line); border-radius:10px;
+    padding:40px 44px 48px;
+  }
+  header{border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:28px}
+  h1{font-size:23px; margin:0 0 4px; letter-spacing:-.01em}
+  .sub{color:var(--ink3); font-size:13.5px; margin:0}
+  h2{
+    font-size:12px; text-transform:uppercase; letter-spacing:.09em;
+    color:var(--accent); margin:34px 0 12px; font-weight:700;
+  }
+  h2:first-of-type{margin-top:0}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 28px}
+  ul,ol{margin:0; padding-left:19px}
+  li{margin:5px 0}
+  li b{font-weight:600}
+  table{border-collapse:collapse; width:100%; font-size:14px; margin-top:4px}
+  th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em;
+    color:var(--ink3); font-weight:700; padding:0 10px 7px 0; border-bottom:1px solid var(--line);
+  }
+  td{padding:9px 10px 9px 0; border-bottom:1px solid var(--line2); vertical-align:top}
+  td:first-child{font-weight:650; white-space:nowrap}
+  .callout{
+    background:var(--warn-soft); border-left:3px solid var(--warn);
+    padding:12px 16px; border-radius:0 6px 6px 0; margin:18px 0 0;
+    font-size:14px; color:#5e3a10;
+  }
+  .callout b{color:var(--warn)}
+  .rule{
+    background:var(--accent); color:#fff; padding:14px 18px; border-radius:6px;
+    margin:26px 0 0; font-size:14.5px;
+  }
+  .rule b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.09em; opacity:.75; margin-bottom:3px}
+  figure{margin:0 0 4px}
+  svg{width:100%; height:auto; display:block}
+  figcaption{font-size:12.5px; color:var(--ink3); margin-top:6px}
+  .sw{display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:-1px; margin-right:5px; border:1.5px solid #fff; box-shadow:0 0 0 1px #0002}
+  .foot{margin-top:36px; padding-top:14px; border-top:1px solid var(--line); font-size:12px; color:var(--ink3)}
+  @media print{
+    body{background:#fff; padding:0; font-size:12.5px}
+    .sheet{border:none; padding:0; max-width:none}
+    h2{margin-top:20px}
+    .rule{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  }
+  @media (max-width:700px){ .grid{grid-template-columns:1fr} .sheet{padding:26px 20px 34px} }
+</style>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+</head>
+<body>
+<div class="sheet">
+
+<header>
+  <h1>Facial Measurement. Photo and marking protocol</h1>
+  <p class="sub">Before and after documentation for tightening, lifting, toxin and filler work.
+  Companion sheet to the Facial Measurement program. One caliper measurement per patient.</p>
+</header>
+
+<h2>What the program measures</h2>
+<p style="margin:4px 0 0">Two things, from ordinary photos.</p>
+<p style="margin:6px 0 0"><b>Displacement.</b> How far the skin moved between two sessions, in
+millimeters, and in which direction.</p>
+<p style="margin:6px 0 0"><b>Wrinkles.</b> How much line there is inside a patch of skin. Area
+covered, total length, how many lines, and how dark they are against the skin next to them.</p>
+<p style="margin:8px 0 0">Both need the same two things to be true. The program has to know how big
+a pixel is, and it has to find the same spot in both photos. The rest of this sheet is those two
+jobs.</p>
+
+<h2>1. The ruler. Measure the patient once, not every visit</h2>
+<p style="margin:4px 0 8px">At the first visit, measure <b>one</b> distance on the face with
+calipers and type it into <b>Patient measurements</b>. The program finds those same two points by
+itself in every photo after that. There is nothing to draw on the skin.</p>
+<table>
+  <thead><tr><th>Distance</th><th>From, to</th><th>Typical adult</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Outer canthal width</td><td>outer corner of one eye, outer corner of the other</td><td>92 mm</td>
+      <td>First choice. The longest span, so a slip costs the least.</td></tr>
+    <tr><td>Inner intercanthal</td><td>inner corner, inner corner</td><td>38 mm</td>
+      <td>Good second span to cross check against.</td></tr>
+    <tr><td>Palpebral fissure</td><td>outer corner, inner corner of one eye</td><td>27 mm</td>
+      <td>Measure both sides. They should agree.</td></tr>
+    <tr><td>Nose height</td><td>bridge between the eyes, base of the nose</td><td>50 mm</td>
+      <td>Runs vertically, so a turned head does not shorten it. Use this for lower face work.</td></tr>
+  </tbody>
+</table>
+<p style="margin:8px 0 0">Turn on two or three and the program takes the median and shows how far
+apart they are. That disagreement tells you whether the head was turned.
+Pick a distance <b>outside the treated area</b>, the same rule as the anchors. For brow or eye work,
+use the nose height instead of an eye span.</p>
+
+<div class="callout">
+  <b>The typical numbers above are not a measurement.</b> Adult palpebral fissure runs
+  27.0 plus or minus 1.8 mm, and inner intercanthal 38.4 plus or minus 3.0 mm. That is 5 to 8
+  percent between people. Used as a stand in, they leave every absolute millimeter a few percent
+  out. Comparisons between sessions still hold, because both photos use the same number. Caliper
+  the patient once and the absolute figures are right too.
+</div>
+
+<h2>2. The ruler, second option. Ink dot pairs</h2>
+<p style="margin:4px 0 8px">Still supported, and useful as an independent check on the face
+measurement. Draw the pairs with a fine surgical marker, then mark them in the program.</p>
+<p style="margin:6px 0 8px"><b>Draw them long.</b> The error in a length is your placement error
+divided by the length. One or two pixels off at each end of a <b>1 cm</b> pair is already 3 to 4
+percent. The same slip on a <b>4 cm</b> pair is under 1 percent. Use the Custom pair chip and type
+the real distance.</p>
+<figure>
+<svg viewBox="0 0 900 300" role="img" aria-label="Front and profile views showing where to draw scale dot pairs">
+  <defs>
+    <g id="pair"><circle cx="0" cy="-8" r="5" fill="#e0562b" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="0" cy="8" r="5" fill="#e0562b" stroke="#fff" stroke-width="1.5"/>
+      <line x1="9" y1="-8" x2="9" y2="8" stroke="#6f7683" stroke-width="1"/>
+      <line x1="6.5" y1="-8" x2="11.5" y2="-8" stroke="#6f7683" stroke-width="1"/>
+      <line x1="6.5" y1="8" x2="11.5" y2="8" stroke="#6f7683" stroke-width="1"/></g>
+  </defs>
+  <text x="30" y="24" font-size="11" font-weight="700" fill="#6f7683" letter-spacing="1.2">FRONT</text>
+  <ellipse cx="215" cy="165" rx="105" ry="130" fill="#f4ece6" stroke="#454b57" stroke-width="1.5"/>
+  <ellipse cx="180" cy="145" rx="8" ry="4" fill="#454b57"/><ellipse cx="250" cy="145" rx="8" ry="4" fill="#454b57"/>
+  <path d="M215 152 q-7 26 0 38 q6 6 0 8" stroke="#454b57" stroke-width="1.3" fill="none"/>
+  <path d="M190 228 q25 12 50 0" stroke="#454b57" stroke-width="1.5" fill="none"/>
+  <use href="#pair" x="215" y="88"/><text x="232" y="84" font-size="12" font-weight="650" fill="#16181d">forehead</text>
+  <use href="#pair" x="215" y="268"/><text x="232" y="264" font-size="12" font-weight="650" fill="#16181d">chin</text>
+  <use href="#pair" x="277" y="182"/><text x="294" y="178" font-size="12" font-weight="650" fill="#16181d">malar</text>
+  <use href="#pair" x="153" y="182"/><text x="112" y="178" font-size="12" font-weight="650" fill="#16181d">malar</text>
+  <line x1="450" y1="30" x2="450" y2="280" stroke="#dcdfe5" stroke-width="1"/>
+  <text x="490" y="24" font-size="11" font-weight="700" fill="#6f7683" letter-spacing="1.2">PROFILE, ADD PRE-AURICULAR</text>
+  <ellipse cx="660" cy="165" rx="95" ry="125" fill="#f4ece6" stroke="#454b57" stroke-width="1.5"/>
+  <path d="M600 150 c-12 -16 -30 -9 -28 7 c2 14 14 23 26 28 c-5 -12 -2 -23 2 -35 z" fill="#e8dcd2" stroke="#454b57" stroke-width="1.2"/>
+  <use href="#pair" x="676" y="88"/><text x="692" y="84" font-size="12" font-weight="650" fill="#16181d">forehead</text>
+  <use href="#pair" x="640" y="182"/><text x="640" y="222" font-size="12" font-weight="650" fill="#16181d" text-anchor="middle">pre-auricular</text>
+  <use href="#pair" x="716" y="150"/><text x="734" y="146" font-size="12" font-weight="650" fill="#16181d">malar</text>
+</svg>
+<figcaption>Draw each pair vertically. A vertical span barely shortens when the head turns, a
+horizontal one does. Mark them by clicking near each dot. Snap to center moves your click to the
+middle of the ink, so the before and the after photo get the same point.</figcaption>
+</figure>
+
+<h2>3. Tracking. What moves with the skin</h2>
+<table>
+  <thead><tr><th>Mark</th><th>Job</th><th>How long it lasts</th></tr></thead>
+  <tbody>
+    <tr><td><span class="sw" style="background:#1f6f6b"></span>Face map</td>
+      <td>468 points the program finds by itself in both photos. This carries the regional numbers
+        for brow, malar, jawline and chin. You mark nothing.</td>
+      <td>Permanent</td></tr>
+    <tr><td><span class="sw" style="background:#8b2be0"></span>Skin references</td>
+      <td>Not drawn. Found. Moles, freckles and small scars. Mark the same ones every session for
+        exact per point readings that survive weeks.</td>
+      <td>Permanent</td></tr>
+    <tr><td><span class="sw" style="background:#2b6fe0"></span>Tracking dots</td>
+      <td>Ink inside the treatment area, for immediate before and after in one sitting. The program
+        refuses them across sessions, because ink drawn twice is not the same point.</td>
+      <td>One visit</td></tr>
+  </tbody>
+</table>
+<p style="margin:8px 0 0">A whole study runs with no ink at all. One caliper measurement for the
+ruler, the face map and any moles for the tracking. Ink is then only for same visit dot tracking, or
+as a second opinion on the scale.</p>
+
+<h2>4. Wrinkles</h2>
+<p style="margin:4px 0 8px">Regions are outlined from the patient's own face map. Forehead,
+glabella, crow's feet, bunny lines, infraorbital, nasolabial, marionette. On a close-up there is no
+face map, so you drag the box yourself. Keep eyelashes, eyebrow and hairline outside the box.
+The program reads them as lines. Anything that gets in anyway can be brushed off with
+<b>Erase</b>.</p>
+<p style="margin:6px 0 8px">Per region you get area covered, total line length in mm and per square
+cm, how many lines, apparent width, and contrast against the surrounding skin. The totals count
+every line in the region. Report those. The per line list underneath is the same lines one by
+one.</p>
+
+<div class="callout">
+  <b>A photo cannot measure depth.</b> It shows how dark a line is. Depth needs a replica, a
+  profilometer or a 3D scan. Published automatic detectors also disagree with hand tracing more
+  often than not. Use these numbers for change in one patient under one lighting setup, and print
+  them next to the 0 to 4 grade you already give.
+</div>
+
+<h2>Wrinkle photos. Four exposures every session</h2>
+<p style="margin:4px 0 8px">Toxin trials score lines at rest and at full contraction, because a
+line that only appears on movement barely shows at rest. Take all four.</p>
+<table>
+  <thead><tr><th>Photo</th><th>Tell the patient</th><th>Scores</th></tr></thead>
+  <tbody>
+    <tr><td>Front, at rest</td><td>Relax completely. Look straight at the lens.</td>
+      <td>Nasolabial, marionette, infraorbital, and every region at rest</td></tr>
+    <tr><td>Frown</td><td>Frown hard. Pull your brows together.</td><td>Glabellar lines</td></tr>
+    <tr><td>Brow raise</td><td>Raise your eyebrows as high as you can.</td><td>Forehead lines</td></tr>
+    <tr><td>Squint</td><td>Squeeze your eyes shut, or give a big smile.</td><td>Crow's feet, bunny lines</td></tr>
+  </tbody>
+</table>
+<p style="margin:8px 0 0">These go in the <b>Expression</b> row of the session card. Add a
+<b>close-up</b> of each region you are scoring and put it in that region's own box under
+<b>Close-ups</b>. A close-up resolves finer lines than any full face shot, and the program uses it
+first when it is there.</p>
+<p style="margin:6px 0 0">The program will not use an expression photo to measure displacement. A
+frown drags the skin several millimeters by itself, and that would come out looking like treatment.</p>
+<p style="margin:6px 0 0">Shoot the close-ups from the same spot every visit. It will still not be
+exact. After a comparison, <b>Wipe</b> and <b>Side by side</b> show the pair, and <b>Align</b> lets
+you drag, nudge, resize or turn one of them until they sit on top of each other. That is a picture
+control. It never touches a measured number.</p>
+
+<h2>Lighting for wrinkles</h2>
+<div class="grid">
+  <ul>
+    <li>A wrinkle shows up because it casts a shadow. Move the lamp and the shadow moves with it.
+      Fix the lamp positions and mark the floor. No software corrects for a lamp that moved.</li>
+    <li>Light slightly off axis shows lines best. A softbox at 30 to 45 degrees. A flat ring light
+      fills the lines in and hides them.</li>
+    <li>Do not switch polarization partway through a study. Cross polarized light removes surface
+      shine and is right for redness and pigment. It also flattens the surface relief that wrinkles
+      are made of. Pick one and keep it.</li>
+  </ul>
+  <ul>
+    <li>Blot the skin. A shiny highlight next to a line reads as bright skin and inflates contrast.</li>
+    <li>No makeup, no filters, no beauty mode, and no retouching in the phone gallery.</li>
+    <li>Fill the frame with the face. Fine lines need resolution. Aim for at least 5 pixels per
+      millimeter. The program says when a photo is too coarse.</li>
+    <li>Exposure drift is corrected for. Detection runs on contrast relative to the skin beside each
+      line. Lighting angle is not corrected for. Same lamps, same places.</li>
+  </ul>
+</div>
+
+<h2>Camera. Same rules every session</h2>
+<div class="grid">
+  <ul>
+    <li>Same camera, same lens, same zoom, same distance as the baseline. Write the setup on the
+      study sheet.</li>
+    <li>Camera at eye level, horizon level. Use a tripod on a taped floor mark.</li>
+    <li>Lock focus and exposure. No beauty filters. No portrait mode, its edge blur eats the dots.</li>
+  </ul>
+  <ul>
+    <li>Neutral face for the resting shots. Teeth lightly together, no smile. Expression moves the
+      tissue you are measuring.</li>
+    <li>Hair fully back, ears out. Remove glasses and earrings.</li>
+    <li>Front view every session. Add 45 and true 90 degree views as the study needs. More views
+      resolve more directions of movement.</li>
+  </ul>
+</div>
+
+<h2>Session procedure</h2>
+<table>
+  <thead><tr><th>Step</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td>1. Measure</td><td>First visit only. One caliper distance from the table above, into
+      Patient measurements.</td></tr>
+    <tr><td>2. Draw</td><td>Optional. Ink pairs 3 to 5 cm long if you want a cross check. Tracking
+      dots in the treatment area for same visit work.</td></tr>
+    <tr><td>3. Shoot</td><td>Front, then the side views. For wrinkles add frown, brow raise, squint,
+      and a close-up of each region. Check every frame for blur and glare before the patient
+      leaves.</td></tr>
+    <tr><td>4. Upload</td><td>Into the matching box. Front goes in Front. A frown goes in Frown. An
+      eye close-up goes in Crow's feet. The face map runs by itself.</td></tr>
+    <tr><td>5. Mark</td><td>Any ink dots, by clicking near them. First session, pick 3 to 6 moles or
+      scars as skin references, including 3 or more on untreated skin as A anchors if you will use
+      profiles. Mark the same ones every session.</td></tr>
+    <tr><td>6. Displacement</td><td>Baseline against the new session, one view at a time. Pick the
+      anchor preset that matches the treated area. Read the regions, or click any point.</td></tr>
+    <tr><td>7. Wrinkles</td><td>Switch to Wrinkles. Set the scale and the box on each close-up,
+      then brush off anything the box caught that is not wrinkle. Record your 0 to 4 grade. Press
+      Compare wrinkles.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>Run one control pair before the study counts.</b> Photograph the untreated patient twice,
+  minutes apart, with a full reset in between and the dots redrawn. Compare it with the control pair
+  box ticked. The number it stores is the error floor of your setup, and every report prints values
+  against it. Readings below it are not findings. Run it again when the camera, the room or the
+  photographer changes.
+</div>
+
+<div class="rule">
+  <b>Ink against anatomy</b>
+  Ink is redrawn. Anatomy is not. A dot drawn today and a dot drawn last month are not the same
+  point, and the program refuses to compare them. Between sessions the face map and the moles are
+  the measurement. A distance measured on the patient once is the ruler.
+</div>
+
+<div class="rule" style="margin-top:12px">
+  <b>Wrinkle sensitivity is a study setting</b>
+  Sensitivity is how much darker than the skin something has to be before it counts as a line. It
+  applies to every photo in the study. Set it at the baseline session, write it on the study sheet,
+  and do not change it again.
+</div>
+
+<h2>What the numbers mean, and what they do not</h2>
+<ul>
+  <li>Each view is measured in its own image plane. The front view resolves sideways and up and down
+    movement. The 90 degree profiles resolve front to back and up and down. Movement out of the
+    plane reads short. There is no 3D reconstruction.</li>
+  <li>The anchor residual printed with every comparison is how closely the untreated anchors agree.
+    Readings below it are not measurable.</li>
+  <li>A wrong ruler is a pure scale error. Every millimeter moves by the same proportion, and the
+    directions, the alignment and the session to session comparison are untouched. Placement error
+    is not so forgiving, which is why a long measured span beats a short clicked one.</li>
+  <li>Regional figures average an approximate set of points. The per point reading is the exact one.</li>
+  <li>Expect real skin tightening to come out at 1 to 3 mm. At that size the ruler, the control
+    pair and the camera discipline decide whether the reading is usable.</li>
+</ul>
+
+<div class="foot">
+  Facial measurement protocol. Print at A4 and keep it at the photo station. Companion to
+  the Cygnus Measurement Tool, sibling of the 3D Facial Design Planner.<br>
+  Patient photos are sensitive personal data. Capture them with recorded consent and keep the sets
+  on the clinic system. These measurements record photographic change. They are not a diagnosis.
+</div>
+
+</div>
+</body>
+</html>

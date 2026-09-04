@@ -1,0 +1,52 @@
+{
+  "name": "Cygnus Measurement Tool",
+  "short_name": "Cygnus Measure",
+  "description": "Before and after facial measurement from photographs. Displacement in millimeters and wrinkle line measurement. Everything runs on your own device.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f8fa",
+  "theme_color": "#1f6f6b",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "medical",
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Printable protocol sheet",
+      "short_name": "Protocol",
+      "url": "./measurement-protocol.html",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

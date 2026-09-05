@@ -218,7 +218,14 @@ table.rt td.ctr,table.rt th.ctr{text-align:center; padding-right:0; width:34px}
 /* on a phone the wide table becomes one block per row, labelled */
 @media (max-width:700px){
   #popBg{padding:0}
-  #pop{border-radius:0; width:100vw; max-height:100vh; height:100vh; padding:16px}
+  /* 100vh on a phone measures the screen, not the part of it the browser
+     leaves you, so the buttons at the bottom were cut off. dvh is the
+     visible height, and the buttons stick to the bottom of it. */
+  #pop{border-radius:0; width:100vw; height:100vh; height:100dvh;
+    max-height:100dvh; padding:16px; overscroll-behavior:contain}
+  #pop .btns{position:sticky; bottom:0; z-index:2; margin-top:10px;
+    background:var(--bg); border-top:1px solid var(--line);
+    padding:10px 0 calc(6px + env(safe-area-inset-bottom,0px))}
   #pop table, #pop tbody, #pop tr, #pop td{display:block; width:auto}
   #pop tr.hdr{display:none}
   #pop tr{border-bottom:1px solid var(--line); padding:10px 0}
@@ -298,20 +305,24 @@ details.help p{margin:5px 0}
   /* the coach becomes a bottom sheet */
   #coach,#coach.left,#coach.right{
     left:0; right:0; bottom:0; transform:none; width:auto;
-    border-radius:14px 14px 0 0; max-height:42vh; overflow-y:auto;
+    border-radius:14px 14px 0 0; max-height:38dvh; overflow-y:auto;
     overscroll-behavior:contain;
+    padding-bottom:calc(13px + env(safe-area-inset-bottom,0px));
   }
   /* The sheet used to float over the canvas, so on a phone the photograph
      was under it and there was nothing to scroll. The canvas is given the
      rest of the screen instead. */
   body.tourm #center{padding-bottom:var(--coachH,0px)}
-  /* The demonstration sets every control itself. On a phone the toolbar
-     took three rows and left the photograph 86 pixels, so during that one
-     tour it comes out and the photograph gets the screen. The wipe slider
-     is the exception: that one is dragged in front of the patient. */
-  body.tourdemo #toolRow{padding:0; border:none}
-  body.tourdemo #toolRow > *{display:none !important}
-  body.tourdemo #toolRow > #wipeRow.tourwipe{display:flex !important; padding:6px 10px}
+  /* During a tour the toolbar wrapped to three rows and left the
+     photograph 86 pixels. It stays reachable, because a tour is something
+     to poke at while it runs, but on one line that scrolls sideways. */
+  body.tourm #toolRow{
+    flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
+    scrollbar-width:none; padding:5px 10px;
+  }
+  body.tourm #toolRow::-webkit-scrollbar{display:none}
+  body.tourm #toolRow > *{flex:0 0 auto}
+  body.tourm #modeHint{display:none}
   #statusRow{gap:10px}
 }
 #coach .step{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
@@ -1939,8 +1950,6 @@ function updateToolRow(){
     $('#dotLbl').style.display=pts?'':'none'; }
   $('#onSeg').style.display=(UI.analysis!=='wrink' && UI.cmp && UI.cmpMode==='single')?'':'none';
   $('#wipeRow').style.display=(mob && !(pair&&UI.cmpMode==='wipe'))?'none':'';
-  /* during the demonstration on a phone this is the only control left out */
-  $('#wipeRow').classList.toggle('tourwipe', !!(pair&&UI.cmpMode==='wipe'));
   const wrk=UI.analysis==='wrink';
   $('#vecRow').style.display=(wrk || (mob && !UI.cmp))?'none':'';
   $('#ovLbl').style.display=wrk?'none':'';
@@ -4006,9 +4015,15 @@ function liftTourSteps(){
   const setOn=w=>{ UI.cmpOn=w;
     $$('#onSeg button').forEach(x=>x.classList.toggle('on',x.dataset.on===w));
     updateToolRow(); sizeCanvases(); fitView(); draw(); };
+  /* Every step puts its own display back. He is meant to poke at the
+     controls while the tour runs, so a step cannot assume the one before
+     it left anything alone. */
+  const view=m=>{ if(UI.cmpMode!==m){ setCmpMode(m); updateToolRow();
+    sizeCanvases(); fitView(); } draw(); };
 
   return [
   { title:'What this is', pos:'left',
+    onEnter(){ view('single'); setOv({lm:false, marks:false, vec:false, heat:false}); },
     body:()=>`Front photo before. Front photo eight weeks after. Treatment was under the
       chin and along the jaw.<br><br>
       Photos: real.<br>
@@ -4044,10 +4059,11 @@ function liftTourSteps(){
       })()}`; } },
 
   { title:'Anchors', target:'#cmpPanel', pos:'right',
-    onEnter(){ renderCmpSelectors();
+    onEnter(){ view('single'); setOv({lm:false, marks:true, vec:false, heat:false});
+      renderCmpSelectors();
       $('#cmpA').value=TUT.sidA; $('#cmpB').value=TUT.sidB; $('#cmpView').value='front';
       $('#cmpAnchors').value='lower'; },
-    body:()=>`${at('Set Anchors to <b>Lower face / jawline treated</b>.','Anchors set to lower face.')}<br><br>
+    body:()=>`Set Anchors to <b>Lower face / jawline treated</b>.<br><br>
       Lines the two photos up on forehead, eye corners, nose bridge, nose base. None of
       those were treated.` },
 
@@ -4057,31 +4073,35 @@ function liftTourSteps(){
       sizeCanvases(); fitView(); },
     body:()=>{ const c=UI.cmp; if(!c) return 'Measuring…';
       const j=reg('jowlR'), ch=reg('chin');
-      return `${at('Press <b>Measure displacement</b>.','Measured.')}<br><br>
+      return `Press <b>Measure displacement</b>.<br><br>
       ${j&&!j.insufficient?`Jawline R: <b>${fmt(j.mag,1)} mm</b> ±${fmt(j.sd,1)}<br>`:''}
       ${ch&&!ch.insufficient?`Chin: <b>${fmt(ch.mag,1)} mm</b><br>`:''}
       Anchors line up to <b>${fmt(c.R.rms,2)} mm</b>. Readings under that are not measurable.<br><br>
       Full table ${at('on the right','under the Results button')}.`; } },
 
   { title:'Before or after', target:'#onSeg', pos:'left',
-    onEnter(){ setOn('before'); },
+    onEnter(){ view('single'); setOv({heat:false, vec:true, marks:false, lm:false});
+      setOn('before'); },
     body:`<b>On before</b> draws the result where the skin started.<br>
       <b>On after</b> draws it where the skin ended up.<br><br>
       Same numbers. Use On after with a patient.` },
 
   { title:'Heat map', target:'#ovSeg', pos:'left',
-    onEnter(){ setOn('after'); UI.heat.by='mag'; UI.heat.max=4; UI.heat.style='smooth';
-      UI.heat.regions=null;
+    onEnter(){ view('single'); setOn('after');
+      UI.heat.by='mag'; UI.heat.max=4; UI.heat.style='smooth';
+      UI.heat.regions=null; UI.heat.alpha=0.35;
       $('#heatBy').value='mag'; $('#heatStyle').value='smooth';
       $('#heatMax').value='4'; $('#heatMaxV').textContent='4.0';
+      $('#heatAlpha').value='35'; $('#heatAlphaV').textContent='35';
       setOv({heat:true, vec:false}); },
-    body:()=>`${at('Press <b>Heat</b>.','Heat is on.')}<br><br>
+    body:()=>`Press <b>Heat</b>.<br><br>
       Green: 0 mm. Red: 4 mm.<br>
       Bar beside the photo is the scale. The <b>to 4 mm</b> slider sets full colour.<br>
       Eyes and mouth are cut out.` },
 
   { title:'Pick the areas', target:'#heatAreas', pos:'left',
-    onEnter(){ UI.heat.regions=['jowlR','jowlL','chin','nlfR','nlfL'];
+    onEnter(){ view('single'); setOv({heat:true, vec:false});
+      UI.heat.regions=['jowlR','jowlL','chin','nlfR','nlfL'];
       renderHeatAreas(); draw(); },
     body:()=>`Set to <b>Lower face</b>, which is what was treated.<br><br>
       ${at(`Chips are under the colour scale on the right. Top row is the presets.
@@ -4089,7 +4109,8 @@ function liftTourSteps(){
       <b>Whole face</b> puts it all back.` },
 
   { title:'Three styles', target:'#heatStyle', pos:'left',
-    onEnter(){ UI.heat.style='zones'; $('#heatStyle').value='zones'; updateToolRow(); draw(); },
+    onEnter(){ view('single'); setOv({heat:true, vec:false});
+      UI.heat.style='zones'; $('#heatStyle').value='zones'; updateToolRow(); draw(); },
     body:`Now on <b>Zones</b>.<br><br>
       <b>Smooth</b>: blended field.<br>
       <b>Zones</b>: one colour per region.<br>
@@ -4097,7 +4118,8 @@ function liftTourSteps(){
       <b>See through</b> sets how much photo shows under the colour.` },
 
   { title:'What the colour means', target:'#heatRow', pos:'left',
-    onEnter(){ UI.heat.style='smooth'; $('#heatStyle').value='smooth';
+    onEnter(){ view('single'); setOv({heat:true, vec:false});
+      UI.heat.style='smooth'; $('#heatStyle').value='smooth';
       UI.heat.by='vert'; $('#heatBy').value='vert';
       updateToolRow(); renderHeatLegend(); draw(); },
     body:`Now on <b>Up and down</b>.<br><br>
@@ -4107,15 +4129,16 @@ function liftTourSteps(){
       <b>Front and back</b>: 90 degree profile only.` },
 
   { title:'Arrows', target:'#vecRow', pos:'left',
-    onEnter(){ UI.vecEvery=5; $('#vecEvery').value='5'; $('#vecEveryV').textContent='5';
+    onEnter(){ view('single'); UI.vecEvery=5;
+      $('#vecEvery').value='5'; $('#vecEveryV').textContent='5';
       setOv({vec:true, heat:true}); },
-    body:()=>`${at('Press <b>Vectors</b>.','Arrows are on.')}<br><br>
+    body:()=>`Press <b>Vectors</b>.<br><br>
       <b>×</b> sets how far the arrows are exaggerated.<br>
       <b>every</b> sets how many are drawn. Lower it to see the face.<br><br>
       Arrows shorter than the anchor residual are dropped.` },
 
   { title:'Read one point', target:'#resPick', pos:'left',
-    onEnter(){ UI.mode='inspect';
+    onEnter(){ view('single'); UI.mode='inspect';
       $$('#modeSeg button').forEach(x=>x.classList.toggle('on',x.dataset.mode==='inspect'));
       const c=UI.cmp; if(!c) return;
       let best=null;
@@ -4123,12 +4146,12 @@ function liftTourSteps(){
       if(best){ UI.pick=best; renderPick(); draw(); }
       updateHint(); },
     body:()=>{ const q=UI.pick;
-      return `${at('Press <b>Inspect</b>, then click any point on the face.',
-                   'Inspect is on. Tap any point on the face.')}<br><br>
+      return `Press <b>Inspect</b>, then ${at('click','tap')} any point on the face.<br><br>
       ${q?`Biggest mover: <b>${fmt(q.mag,1)} mm</b>.<br><br>`:''}
       Regions are averages. This is one point.`; } },
 
   { title:'Distances', target:'#dimBox', pos:'left',
+    onEnter(){ view('single'); renderDimTable(); },
     body:()=>{ const c=UI.cmp; if(!c) return '';
       const rows=dimCompare(c.pA,c.pB), g=id=>rows.find(r=>r.id===id);
       const jw=g('jawW'), jc=g('jc'), lfh=g('lfh');
@@ -4140,14 +4163,13 @@ function liftTourSteps(){
   { title:'Show the patient', target:'#viewSeg', pos:'left',
     onEnter(){ setCmpMode('wipe'); UI.wipe=0.5; $('#wipe').value='50';
       updateToolRow(); sizeCanvases(); fitView(); draw(); },
-    body:()=>`<b>Wipe</b>: drag the Wipe slider to sweep after across before.<br>
-      ${at(`<b>Side by side</b>: both at once.<br>
-        <b>Align</b>: drag one photo onto the other. Picture only, numbers do not change.`,
-        'Side by side and Align are in the full controls.')}` },
+    body:`<b>Wipe</b>: drag the Wipe slider to sweep after across before.<br>
+      <b>Side by side</b>: both at once.<br>
+      <b>Align</b>: drag one photo onto the other. Picture only, numbers do not change.` },
 
   { title:'Numbers big', target:'#btnPopout', pos:'left',
     onEnter(){ setCmpMode('single'); updateToolRow(); sizeCanvases(); fitView(); openPopout(); },
-    body:()=>`${at('Press <b>Open the results in a window</b>.','Results window is open.')}<br><br>
+    body:()=>`Press <b>Open the results in a window</b>.<br><br>
       <b>Report</b>, ${at('top right','in the top bar')}, prints values, quality checks, anchor
       residual and error floor.` },
 
@@ -4415,7 +4437,6 @@ function startTour(mode){
   TUT.wasSimple=UI.simple;
   if(UI.simple) setSimple(false,false);
   document.body.classList.add('tourm');
-  document.body.classList.toggle('tourdemo',mode==='lift');
   TUT.on=true; TUT.mode=mode; TUT.i=0; TUT.sidB=null; TUT.lastKey='';
   TUT.sidA=S.sessions[0].id;
   if(mode==='lift'){
@@ -4468,7 +4489,7 @@ function startTour(mode){
 function endTour(){
   TUT.on=false; clearInterval(TUT.timer); TUT.timer=null;
   tutClearGlow(); $('#coach')?.remove();
-  document.body.classList.remove('tourm','tourdemo');
+  document.body.classList.remove('tourm');
   document.body.style.removeProperty('--coachH');
   if(TUT.wasSimple){ TUT.wasSimple=false; setSimple(true,false); }
   try{ sizeCanvases(); fitView(); }catch{}

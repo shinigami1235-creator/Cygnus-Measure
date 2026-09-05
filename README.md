@@ -5,7 +5,7 @@ millimetres and wrinkle line measurement.
 
 Live at https://shinigami1235-creator.github.io/Cygnus-Measure/
 
-Version 2.5.1.
+Version 2.5.2.
 
 ## Nothing patient related leaves the device
 

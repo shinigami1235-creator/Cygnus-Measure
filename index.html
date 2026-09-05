@@ -298,8 +298,20 @@ details.help p{margin:5px 0}
   /* the coach becomes a bottom sheet */
   #coach,#coach.left,#coach.right{
     left:0; right:0; bottom:0; transform:none; width:auto;
-    border-radius:14px 14px 0 0; max-height:46vh; overflow-y:auto;
+    border-radius:14px 14px 0 0; max-height:42vh; overflow-y:auto;
+    overscroll-behavior:contain;
   }
+  /* The sheet used to float over the canvas, so on a phone the photograph
+     was under it and there was nothing to scroll. The canvas is given the
+     rest of the screen instead. */
+  body.tourm #center{padding-bottom:var(--coachH,0px)}
+  /* The demonstration sets every control itself. On a phone the toolbar
+     took three rows and left the photograph 86 pixels, so during that one
+     tour it comes out and the photograph gets the screen. The wipe slider
+     is the exception: that one is dragged in front of the patient. */
+  body.tourdemo #toolRow{padding:0; border:none}
+  body.tourdemo #toolRow > *{display:none !important}
+  body.tourdemo #toolRow > #wipeRow.tourwipe{display:flex !important; padding:6px 10px}
   #statusRow{gap:10px}
 }
 #coach .step{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
@@ -1927,6 +1939,8 @@ function updateToolRow(){
     $('#dotLbl').style.display=pts?'':'none'; }
   $('#onSeg').style.display=(UI.analysis!=='wrink' && UI.cmp && UI.cmpMode==='single')?'':'none';
   $('#wipeRow').style.display=(mob && !(pair&&UI.cmpMode==='wipe'))?'none':'';
+  /* during the demonstration on a phone this is the only control left out */
+  $('#wipeRow').classList.toggle('tourwipe', !!(pair&&UI.cmpMode==='wipe'));
   const wrk=UI.analysis==='wrink';
   $('#vecRow').style.display=(wrk || (mob && !UI.cmp))?'none':'';
   $('#ovLbl').style.display=wrk?'none':'';
@@ -3978,6 +3992,9 @@ function wrinkleTourSteps(){
    they can click anything at any point, and Next puts the next setting
    in place on top of whatever they did. */
 function liftTourSteps(){
+  /* On a phone the panels are drawers behind two buttons, so "on the right"
+     is wrong there. One word each way. */
+  const at=(desk,phone)=>isMobile()?phone:desk;
   const A=()=>getPhoto(TUT.sidA,'front');
   const B=()=>getPhoto(TUT.sidB,'front');
   const ready=()=>{ const a=A(),b=B(); return !!(a&&b&&a.lmState==='ok'&&b.lmState==='ok'&&b.designed); };
@@ -4030,7 +4047,7 @@ function liftTourSteps(){
     onEnter(){ renderCmpSelectors();
       $('#cmpA').value=TUT.sidA; $('#cmpB').value=TUT.sidB; $('#cmpView').value='front';
       $('#cmpAnchors').value='lower'; },
-    body:`Set Anchors to <b>Lower face / jawline treated</b>.<br><br>
+    body:()=>`${at('Set Anchors to <b>Lower face / jawline treated</b>.','Anchors set to lower face.')}<br><br>
       Lines the two photos up on forehead, eye corners, nose bridge, nose base. None of
       those were treated.` },
 
@@ -4040,11 +4057,11 @@ function liftTourSteps(){
       sizeCanvases(); fitView(); },
     body:()=>{ const c=UI.cmp; if(!c) return 'Measuring…';
       const j=reg('jowlR'), ch=reg('chin');
-      return `Press <b>Measure displacement</b>.<br><br>
+      return `${at('Press <b>Measure displacement</b>.','Measured.')}<br><br>
       ${j&&!j.insufficient?`Jawline R: <b>${fmt(j.mag,1)} mm</b> ±${fmt(j.sd,1)}<br>`:''}
       ${ch&&!ch.insufficient?`Chin: <b>${fmt(ch.mag,1)} mm</b><br>`:''}
       Anchors line up to <b>${fmt(c.R.rms,2)} mm</b>. Readings under that are not measurable.<br><br>
-      Full table on the right.`; } },
+      Full table ${at('on the right','under the Results button')}.`; } },
 
   { title:'Before or after', target:'#onSeg', pos:'left',
     onEnter(){ setOn('before'); },
@@ -4058,7 +4075,7 @@ function liftTourSteps(){
       $('#heatBy').value='mag'; $('#heatStyle').value='smooth';
       $('#heatMax').value='4'; $('#heatMaxV').textContent='4.0';
       setOv({heat:true, vec:false}); },
-    body:`Press <b>Heat</b>.<br><br>
+    body:()=>`${at('Press <b>Heat</b>.','Heat is on.')}<br><br>
       Green: 0 mm. Red: 4 mm.<br>
       Bar beside the photo is the scale. The <b>to 4 mm</b> slider sets full colour.<br>
       Eyes and mouth are cut out.` },
@@ -4066,9 +4083,9 @@ function liftTourSteps(){
   { title:'Pick the areas', target:'#heatAreas', pos:'left',
     onEnter(){ UI.heat.regions=['jowlR','jowlL','chin','nlfR','nlfL'];
       renderHeatAreas(); draw(); },
-    body:`Set to <b>Lower face</b>, which is what was treated.<br><br>
-      Chips are under the colour scale on the right. Top row is the presets.
-      Bottom row toggles one region at a time.<br>
+    body:()=>`Set to <b>Lower face</b>, which is what was treated.<br><br>
+      ${at(`Chips are under the colour scale on the right. Top row is the presets.
+        Bottom row toggles one region at a time.<br>`,'')}
       <b>Whole face</b> puts it all back.` },
 
   { title:'Three styles', target:'#heatStyle', pos:'left',
@@ -4092,7 +4109,7 @@ function liftTourSteps(){
   { title:'Arrows', target:'#vecRow', pos:'left',
     onEnter(){ UI.vecEvery=5; $('#vecEvery').value='5'; $('#vecEveryV').textContent='5';
       setOv({vec:true, heat:true}); },
-    body:`Press <b>Vectors</b>.<br><br>
+    body:()=>`${at('Press <b>Vectors</b>.','Arrows are on.')}<br><br>
       <b>×</b> sets how far the arrows are exaggerated.<br>
       <b>every</b> sets how many are drawn. Lower it to see the face.<br><br>
       Arrows shorter than the anchor residual are dropped.` },
@@ -4106,7 +4123,8 @@ function liftTourSteps(){
       if(best){ UI.pick=best; renderPick(); draw(); }
       updateHint(); },
     body:()=>{ const q=UI.pick;
-      return `Press <b>Inspect</b>, then click any point on the face.<br><br>
+      return `${at('Press <b>Inspect</b>, then click any point on the face.',
+                   'Inspect is on. Tap any point on the face.')}<br><br>
       ${q?`Biggest mover: <b>${fmt(q.mag,1)} mm</b>.<br><br>`:''}
       Regions are averages. This is one point.`; } },
 
@@ -4122,14 +4140,16 @@ function liftTourSteps(){
   { title:'Show the patient', target:'#viewSeg', pos:'left',
     onEnter(){ setCmpMode('wipe'); UI.wipe=0.5; $('#wipe').value='50';
       updateToolRow(); sizeCanvases(); fitView(); draw(); },
-    body:`<b>Wipe</b>: drag the Wipe slider to sweep after across before.<br>
-      <b>Side by side</b>: both at once.<br>
-      <b>Align</b>: drag one photo onto the other. Picture only, numbers do not change.` },
+    body:()=>`<b>Wipe</b>: drag the Wipe slider to sweep after across before.<br>
+      ${at(`<b>Side by side</b>: both at once.<br>
+        <b>Align</b>: drag one photo onto the other. Picture only, numbers do not change.`,
+        'Side by side and Align are in the full controls.')}` },
 
   { title:'Numbers big', target:'#btnPopout', pos:'left',
     onEnter(){ setCmpMode('single'); updateToolRow(); sizeCanvases(); fitView(); openPopout(); },
-    body:`Press <b>Open the results in a window</b>.<br><br>
-      <b>Report</b>, top right, prints values, quality checks, anchor residual and error floor.` },
+    body:()=>`${at('Press <b>Open the results in a window</b>.','Results window is open.')}<br><br>
+      <b>Report</b>, ${at('top right','in the top bar')}, prints values, quality checks, anchor
+      residual and error floor.` },
 
   { title:'Before you use it on a patient', finish:true, pos:'left',
     onEnter(){ closePopout(); },
@@ -4321,7 +4341,7 @@ function tutRender(){
   const body=typeof st.body==='function'?st.body():st.body;
   const r=st.check?(st.check()||{}):null;
   const key=TUT.i+'|'+(r?(r.done?'d':'w'+r.progress):'')+'|'+body;
-  if(key===TUT.lastKey) return; TUT.lastKey=key;
+  if(key===TUT.lastKey){ tutReserve(coach); return; } TUT.lastKey=key;
   const canNext=!st.check || (r&&r.done) || st.alsoNext;
   coach.innerHTML=`
     <button id="tutMin" title="${TUT.min?'expand':'collapse'} the guide">${TUT.min?'▴':'▾'}</button>
@@ -4350,6 +4370,18 @@ function tutRender(){
   tutClearGlow();
   if(st.target){ const t=$(st.target); if(t){ t.classList.add('tut-glow');
     t.scrollIntoView({block:'nearest',behavior:'smooth'}); } }
+  tutReserve(coach);
+}
+
+/* On a phone the guide is a sheet along the bottom. Give the canvas the
+   screen above it, or the photograph ends up underneath the sheet with
+   nothing to scroll. */
+function tutReserve(coach){
+  if(!isMobile()){ document.body.style.removeProperty('--coachH'); return; }
+  const h=coach.offsetHeight+'px';
+  if(document.body.style.getPropertyValue('--coachH')===h) return;
+  document.body.style.setProperty('--coachH',h);
+  requestAnimationFrame(()=>{ try{ sizeCanvases(); fitView(); }catch{} });
 }
 
 function tutGoto(i){
@@ -4357,10 +4389,15 @@ function tutGoto(i){
   if(i<0||i>=steps.length) return;
   TUT.i=i; TUT.lastKey=''; TUT.min=false;   // each new step starts unfolded
   steps[i].onEnter?.();
-  /* on a phone, open whichever drawer the step's target lives in */
+  /* On a phone a drawer covers the photograph. The demonstration drives
+     every control itself, so there is nothing in a drawer to press and the
+     photograph is the thing to look at. */
   if(isMobile()){
-    const t=steps[i].target && $(steps[i].target);
-    openDrawer(t?(t.closest('#left')?'left':t.closest('#right')?'right':null):null);
+    if(TUT.mode==='lift') openDrawer(null);
+    else {
+      const t=steps[i].target && $(steps[i].target);
+      openDrawer(t?(t.closest('#left')?'left':t.closest('#right')?'right':null):null);
+    }
   }
   tutRender();
 }
@@ -4372,6 +4409,13 @@ function startTour(mode){
     if(!confirm('Starting this clears the photos that are loaded. Save the session first if you need them. Continue?')) return;
     if(mode==='practice') clearPractice();
   }
+  /* The simple screen covers the canvas with the home screen and hides the
+     toolbar, and every step points at a control that is not on it. So a
+     tour runs in the full controls and puts the screen back at the end. */
+  TUT.wasSimple=UI.simple;
+  if(UI.simple) setSimple(false,false);
+  document.body.classList.add('tourm');
+  document.body.classList.toggle('tourdemo',mode==='lift');
   TUT.on=true; TUT.mode=mode; TUT.i=0; TUT.sidB=null; TUT.lastKey='';
   TUT.sidA=S.sessions[0].id;
   if(mode==='lift'){
@@ -4424,6 +4468,10 @@ function startTour(mode){
 function endTour(){
   TUT.on=false; clearInterval(TUT.timer); TUT.timer=null;
   tutClearGlow(); $('#coach')?.remove();
+  document.body.classList.remove('tourm','tourdemo');
+  document.body.style.removeProperty('--coachH');
+  if(TUT.wasSimple){ TUT.wasSimple=false; setSimple(true,false); }
+  try{ sizeCanvases(); fitView(); }catch{}
 }
 
 function clearPractice(){
@@ -5394,10 +5442,12 @@ function setTextSize(n){
   sizeCanvases();
 }
 
-function setSimple(on){
+/* remember=false is for the tours, which need the full controls for as
+   long as they run and must hand the examiner back the screen he chose */
+function setSimple(on,remember=true){
   UI.simple=!!on;
   document.body.classList.toggle('simple',UI.simple);
-  writePref('fmSimple',UI.simple?'1':'0');
+  if(remember) writePref('fmSimple',UI.simple?'1':'0');
   if(UI.simple){ UI.align=false; UI.armed=null; UI.wrDraw=null; UI.wrErase=null; }
   else { FLOW.on=false; UI.ov.marks=true;
     $$('#ovSeg button').forEach(x=>{ if(x.dataset.ov==='marks') x.classList.add('on'); }); }

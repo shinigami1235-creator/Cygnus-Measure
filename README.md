@@ -5,7 +5,7 @@ millimetres and wrinkle line measurement.
 
 Live at https://shinigami1235-creator.github.io/Cygnus-Measure/
 
-Version 2.5.3.
+Version 3.14.0.
 
 ## Nothing patient related leaves the device
 
@@ -24,7 +24,7 @@ Say this to testers. A web address makes people assume the opposite.
 | `sw.js` | keeps a copy on the device so it opens with no signal |
 | `.nojekyll` | stops GitHub running the push through Jekyll |
 | `facial-measure.html` | sends the old file name to the program |
-| `icon-*.png`, `favicon.*` | the icons |
+| `icon-*.png`, `favicon.*` | the icons, copied in from `brand/` by the build |
 
 ## Do not edit these files here
 

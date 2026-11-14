@@ -1,14 +1,14 @@
 {
-  "name": "Cygnus Measurement Tool",
+  "name": "Cygnus Measure. Facial Measurement",
   "short_name": "Cygnus Measure",
-  "description": "Before and after facial measurement from photographs. Displacement in millimeters and wrinkle line measurement. Everything runs on your own device.",
+  "description": "Before and after facial measurement from photographs. Displacement in millimeters, wrinkle line measurement, and a case record for research. Everything runs on your own device. Cygnus Solutions, in partnership with CICM Dermatology.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f7f8fa",
-  "theme_color": "#1f6f6b",
+  "background_color": "#101C2B",
+  "theme_color": "#101C2B",
   "lang": "en",
   "dir": "ltr",
   "categories": [

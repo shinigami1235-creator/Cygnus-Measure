@@ -10,7 +10,7 @@
    examiner saves. This worker only holds the program itself and the face
    model it downloads once. */
 
-const VERSION = '2.5.3';
+const VERSION = '3.14.0';
 const SHELL   = 'cygnus-measure-shell-' + VERSION;
 const VENDOR  = 'cygnus-measure-vendor-v1';   // the face model, kept across updates
 
@@ -18,6 +18,7 @@ const SHELL_FILES = [
   './',
   './index.html',
   './measurement-protocol.html',
+  './ppt-extract.html',
   './manifest.json',
   './favicon.ico',
   './favicon-32.png',

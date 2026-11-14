@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pull the photos out of a slide deck</title>
+<style>
+:root{
+  --bg:#fff; --bg2:#f7f8fa; --ink:#16181d; --ink2:#4a5059; --ink3:#6f7683;
+  --line:#dcdfe5; --line2:#eceef2; --accent:#1f6f6b; --bad:#8a2b2b; --good:#2b6b3f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:14.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink); background:var(--bg2)}
+.wrap{max-width:1040px; margin:0 auto; padding:26px 18px 60px}
+h1{font-size:23px; margin:0 0 4px}
+.sub{color:var(--ink2); margin:0 0 22px}
+h2{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent);
+  margin:28px 0 10px}
+.card{background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:16px 18px;
+  margin-bottom:14px}
+.drop{border:2px dashed var(--line); border-radius:12px; padding:34px 18px; text-align:center;
+  background:var(--bg); cursor:pointer}
+.drop.on{border-color:var(--accent); background:#f0f6f5}
+.drop b{font-size:16px}
+.btn{border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:8px 14px;
+  font:inherit; color:var(--ink); cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+.btn:disabled{opacity:.45; cursor:default}
+.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:8px 0}
+label.chk{display:flex; gap:7px; align-items:flex-start; margin:7px 0}
+label.chk span{flex:1}
+input[type=text]{border:1px solid var(--line); border-radius:6px; padding:5px 8px; font:inherit}
+.warn{background:#fbf1e6; border-left:3px solid #8a4b12; padding:10px 13px; margin:10px 0;
+  border-radius:0 6px 6px 0; font-size:13.5px; color:#5e3a10}
+.note{color:var(--ink3); font-size:12.5px}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:12px;
+  margin-top:12px}
+.pic{border:1px solid var(--line); border-radius:9px; overflow:hidden; background:var(--bg)}
+.pic.off{opacity:.42}
+.pic .im{height:130px; background:#23262b; display:flex; align-items:center; justify-content:center}
+.pic img{max-width:100%; max-height:130px; display:block}
+.pic .meta{padding:7px 9px; font-size:11.5px; color:var(--ink3); line-height:1.45}
+.pic .meta b{color:var(--ink); font-size:12.5px; display:block; word-break:break-all}
+.pic .crop{color:#8a4b12; font-weight:600}
+.pic .pick{display:flex; gap:6px; align-items:center; padding:0 9px 9px; font-size:12px}
+.txt{max-height:230px; overflow:auto; background:var(--bg2); border:1px solid var(--line);
+  border-radius:7px; padding:10px 12px; font-size:12.5px; white-space:pre-wrap;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.hit{background:#fde9c9; padding:0 2px; border-radius:3px}
+.pic .multi{color:var(--accent); font-weight:600}
+.hold{position:relative; display:inline-block; line-height:0}
+.cut{position:absolute; background:#e0533a; box-shadow:0 0 0 1px #fff9}
+.cut.v{top:0; bottom:0; width:2px; margin-left:-1px}
+.cut.h{left:0; right:0; height:2px; margin-top:-1px}
+.cut.drag{cursor:grab; touch-action:none}
+.cut.drag.v{width:9px; margin-left:-4px; background:linear-gradient(90deg,transparent 3px,#e0533a 3px,#e0533a 6px,transparent 6px)}
+.cut.drag.h{height:9px; margin-top:-4px; background:linear-gradient(180deg,transparent 3px,#e0533a 3px,#e0533a 6px,transparent 6px)}
+#cutBg{position:fixed; inset:0; background:#0b0c0ee6; z-index:60; display:flex;
+  align-items:center; justify-content:center; padding:18px}
+#cutCard{background:var(--bg); border-radius:12px; padding:16px 18px; max-width:min(940px,96vw);
+  max-height:94vh; overflow:auto}
+#cutWrap{position:relative; display:inline-block; line-height:0; max-width:100%}
+#cutWrap img{max-width:100%; max-height:64vh; display:block}
+#cutLines{position:absolute; inset:0}
+.hide{display:none !important}
+#status{font-weight:600; color:var(--accent); min-height:1.4em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Pull the photos out of a slide deck</h1>
+<p class="sub">Opens a .pptx on this machine and gives you the pictures inside it, renamed,
+with the camera metadata taken off. Nothing is uploaded. There is no server behind this page:
+close it and it is gone.</p>
+
+<div class="card">
+  <div id="drop" class="drop">
+    <b>Drop a .pptx here</b><br>
+    <span class="note">or click to pick one. A .zip works too.</span>
+  </div>
+  <input type="file" id="file" accept=".pptx,.zip,.ppsx" class="hide">
+  <div id="status" style="margin-top:12px"></div>
+</div>
+
+<div id="warnBox" class="hide">
+  <div class="warn"><b>A cropped picture is still whole in the file.</b> PowerPoint hides the
+  rest of the frame without removing it. Pulling the file out gives you the whole original,
+  which can show a great deal more of the patient than the slide did. Where a slide cropped a
+  picture, this page says so and offers to apply that crop.</div>
+  <div class="warn"><b>Some files hold more than one photograph.</b> A before and an after pasted
+  side by side is one file with two faces in it, and measured as one photograph it is nonsense.
+  Where a gutter runs the whole way down a frame this page proposes the cut and shows it. Check
+  every one by eye before exporting. Where there is no gutter it says so and leaves it alone,
+  because a wrong cut through a face is worse than no cut.</div>
+  <div class="warn"><b>Slide text and speaker notes carry names and dates.</b> They are shown
+  further down so you can read what is in the deck. None of it goes into the pictures you
+  export.</div>
+</div>
+
+<div id="opts" class="card hide">
+  <h2 style="margin-top:0">What comes out</h2>
+  <label class="chk"><input type="checkbox" id="oStrip" checked>
+    <span><b>Strip the camera metadata.</b> Every picture is redrawn, which drops EXIF: the GPS
+    position, the timestamp, the camera serial. Leave this on.</span></label>
+  <label class="chk"><input type="checkbox" id="oCrop" checked>
+    <span><b>Apply the crop the slide used.</b> Only affects pictures that were cropped on a
+    slide. Off means you get the full original frame.</span></label>
+  <label class="chk"><input type="checkbox" id="oRename" checked>
+    <span><b>Rename to a code.</b> The file name inside a deck is usually the phone's, which can
+    carry a date. The exported files are numbered instead.</span></label>
+  <div class="row">
+    <span class="note">Prefix</span>
+    <input type="text" id="oPrefix" value="CASE" size="10">
+    <span class="note">gives CASE-001.jpg, CASE-002.jpg</span>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" id="btnZip" disabled>Save the picked ones as a zip</button>
+    <button class="btn" id="btnAll">Pick all</button>
+    <button class="btn" id="btnNone">Pick none</button>
+    <span id="picked" class="note"></span>
+  </div>
+</div>
+
+<div id="picsBox" class="hide">
+  <h2>Pictures in the deck</h2>
+  <div id="pics" class="grid"></div>
+</div>
+
+<div id="cutBg" class="hide"><div id="cutCard">
+  <h2 style="margin-top:0">Where to cut</h2>
+  <p class="note" style="margin:0 0 10px"><b id="cutName"></b><br>
+  Drag a line to move it. Double click a line to remove it. Nothing is cut until you press Use
+  this cut. Check every line against the photograph first.</p>
+  <div id="cutWrap"><img id="cutImg" alt=""><div id="cutLines"></div></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="cutAddV">Add an up and down line</button>
+    <button class="btn" id="cutAddH">Add an across line</button>
+    <button class="btn" id="cutClear">No cut</button>
+    <span class="note" id="cutCount"></span>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="cutOk">Use this cut</button>
+    <button class="btn" id="cutCancel">Leave it as it was</button>
+  </div>
+</div></div>
+
+<div id="textBox" class="card hide">
+  <h2 style="margin-top:0">Text and notes in the deck</h2>
+  <p class="note" style="margin:0 0 8px">Read this before you share anything from the deck.
+  Anything that looks like a name, a date or a case number is highlighted by a rough match,
+  so read the whole thing rather than trusting the highlights.</p>
+  <div id="text" class="txt"></div>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0">What this page does not do</h2>
+  <p class="note">It does not upload anything, and it cannot: there is nothing to upload to.
+  It does not remove a face, blur an eye, or make a photograph anonymous, since a photograph of
+  a face is identifiable however it is named. Consent, approval and where the files are kept afterwards
+  are still yours to sort out.</p>
+</div>
+
+</div>
+<script>
+/* A .pptx is a zip. Read the central directory, inflate what we need.
+   The browser can inflate on its own, so there is no library here and
+   nothing to load from anywhere. */
+const $=s=>document.querySelector(s);
+const enc=new TextEncoder(), dec=new TextDecoder();
+
+function u16(v,o){ return v.getUint16(o,true); }
+function u32(v,o){ return v.getUint32(o,true); }
+
+async function readZip(buf){
+  const v=new DataView(buf), U=new Uint8Array(buf);
+  /* end of central directory: scan back for the signature */
+  let end=-1;
+  for(let i=U.length-22;i>=Math.max(0,U.length-66000);i--)
+    if(u32(v,i)===0x06054b50){ end=i; break; }
+  if(end<0) throw new Error('not a zip file');
+  const count=u16(v,end+10);
+  let off=u32(v,end+16);
+  const out=new Map();
+  for(let k=0;k<count;k++){
+    if(u32(v,off)!==0x02014b50) break;
+    const method=u16(v,off+10);
+    const csize=u32(v,off+20), usize=u32(v,off+24);
+    const nlen=u16(v,off+28), elen=u16(v,off+30), clen=u16(v,off+32);
+    const lho=u32(v,off+42);
+    const name=dec.decode(U.subarray(off+46,off+46+nlen));
+    out.set(name,{ method, csize, usize, lho });
+    off+=46+nlen+elen+clen;
+  }
+  const inflate=async bytes=>{
+    const ds=new DecompressionStream('deflate-raw');
+    const st=new Blob([bytes]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(st).arrayBuffer());
+  };
+  const get=async name=>{
+    const e=out.get(name); if(!e) return null;
+    const nlen=u16(v,e.lho+26), elen=u16(v,e.lho+28);
+    const start=e.lho+30+nlen+elen;
+    const raw=U.subarray(start,start+e.csize);
+    if(e.method===0) return raw.slice();
+    if(e.method===8) return await inflate(raw);
+    throw new Error('unsupported compression in the deck');
+  };
+  return { names:[...out.keys()], get };
+}
+
+const EXT={ jpeg:'jpg', jpg:'jpg', png:'png', gif:'gif', webp:'webp', bmp:'bmp', tiff:'tif', emf:'emf', wmf:'wmf' };
+const MIME={ jpg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', bmp:'image/bmp' };
+
+/* ── one file, more than one photograph ─────────────────────────────
+
+   Old decks are full of these: a before and an after pasted side by
+   side and saved as one picture. Measured as one photograph they are
+   nonsense, because there are two faces in the frame and one scale
+   cannot describe both.
+
+   Finding the cut needs no face detector and no network. A pasted
+   composite almost always has a gutter between the panels: a run of
+   columns that are flat down their whole height and the colour of the
+   background someone pasted onto. Look for those, and the same again
+   for rows in case the pair was stacked.
+
+   Two things this deliberately does not do. It does not guess when
+   there is no gutter, because two photographs butted hard against each
+   other cannot be told from one photograph with a strong vertical edge
+   in it, and a wrong cut through a face is worse than no cut. And it
+   never decides on its own: it proposes, and the cut is confirmed by
+   eye. */
+
+const PANEL = {
+  work:      900,   // long side the search runs at
+  flat:    0.014,   // a pasted gutter is nearly constant. A photograph is not
+  span:    0.075,   // and its lightest and darkest pixel are close together
+  ratio:      5,    // content beside it has to be this much busier than it is
+  busy:    0.008,   // and busier than noise in absolute terms
+  minGut:  0.004,   // a gutter at least this wide, as a share of the side
+  maxGut:   0.20,   // wider than this is not a gutter, it is the background
+  minPanel: 0.14,   // a panel narrower than this is a sliver, not a photograph
+  edgeSkip: 0.03,   // ignore anything this close to the frame edge
+  maxTrim:  0.25,   // a margin bigger than this is not a margin
+};
+
+function panelScan(im,W,H){
+  const N=PANEL.work;
+  const sc=Math.min(1,N/Math.max(W,H));
+  const w=Math.max(16,Math.round(W*sc)), h=Math.max(16,Math.round(H*sc));
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  const g=cv.getContext('2d',{willReadFrequently:true});
+  g.drawImage(im,0,0,w,h);
+  const d=g.getImageData(0,0,w,h).data;
+  const grey=new Float32Array(w*h);
+  for(let i=0,k=0;i<d.length;i+=4,k++)
+    grey[k]=(0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2])/255;
+  return { grey, w, h };
+}
+
+/* flatness, spread and mean for every line in one direction */
+function lineStats(grey,w,h,vertical){
+  const n=vertical?w:h, m=vertical?h:w;
+  const flat=new Float32Array(n), mean=new Float32Array(n), span=new Float32Array(n);
+  for(let i=0;i<n;i++){
+    let s=0, lo=1, hi=0;
+    for(let j=0;j<m;j++){ const v=grey[vertical?(j*w+i):(i*w+j)];
+      s+=v; if(v<lo)lo=v; if(v>hi)hi=v; }
+    const mu=s/m; mean[i]=mu; span[i]=hi-lo;
+    let a=0;
+    for(let j=0;j<m;j++) a+=Math.abs(grey[vertical?(j*w+i):(i*w+j)]-mu);
+    flat[i]=a/m;
+  }
+  return { flat, mean, span };
+}
+
+/* A gutter is a run of lines with nothing in them. "Nothing" has to be
+   strict, or a plain wall behind a head reads as one. Two tests: the
+   line is nearly constant end to end, and what sits beside the run is
+   markedly busier than the run itself. The second is what separates a
+   pasted gap from a quiet part of a photograph. */
+function gutterRuns(st,n){
+  const { flat, span }=st;
+  const empty=i=>flat[i]<PANEL.flat && span[i]<PANEL.span;
+  const runs=[]; let start=-1;
+  for(let i=0;i<=n;i++){
+    if(i<n && empty(i)){ if(start<0) start=i; }
+    else if(start>=0){ runs.push([start,i-1]); start=-1; }
+  }
+  /* how busy the lines just outside a run are */
+  const near=(from,dir,k)=>{
+    let s=0,c=0;
+    for(let d=1;d<=k;d++){ const i=from+dir*d; if(i<0||i>=n) break; s+=flat[i]; c++; }
+    return c?s/c:0;
+  };
+  return runs.map(([a,b])=>{
+    let inner=0; for(let i=a;i<=b;i++) inner+=flat[i];
+    inner/=(b-a+1);
+    const L=near(a,-1,10), R=near(b,1,10);
+    return { a, b, inner, left:L, right:R };
+  });
+}
+const busyEnough=(v,inner)=>v>PANEL.busy && v>inner*PANEL.ratio;
+
+function findPanels(im,W,H){
+  const { grey, w, h }=panelScan(im,W,H);
+  const out={ w:W, h:H, cols:[], rows:[], trim:{l:0,t:0,r:0,b:0}, why:'' };
+
+  const dir=(vertical)=>{
+    const n=vertical?w:h;
+    const st=lineStats(grey,w,h,vertical);
+    const runs=gutterRuns(st,n);
+    const cuts=[];
+    let trimA=0, trimB=0;
+    for(const r of runs){
+      const width=(r.b-r.a+1)/n;
+      /* a run against the frame edge is a margin, and only if something
+         busy starts where it stops */
+      if(r.a===0){
+        if(width<=PANEL.maxTrim && busyEnough(r.right,r.inner)) trimA=Math.max(trimA,(r.b+1)/n);
+        continue;
+      }
+      if(r.b===n-1){
+        if(width<=PANEL.maxTrim && busyEnough(r.left,r.inner)) trimB=Math.max(trimB,(n-r.a)/n);
+        continue;
+      }
+      if(width<PANEL.minGut||width>PANEL.maxGut) continue;
+      /* a gutter has a photograph on both sides of it */
+      if(!busyEnough(r.left,r.inner)||!busyEnough(r.right,r.inner)) continue;
+      const mid=((r.a+r.b)/2)/n;
+      if(mid<PANEL.edgeSkip||mid>1-PANEL.edgeSkip) continue;
+      /* half the gutter's width, so the panels come out with none of it
+         on them rather than half each */
+      cuts.push({ mid, half:(r.b-r.a+1)/(2*n) });
+    }
+    const keep=[], half=[];
+    let prev=trimA;
+    for(const c of cuts){
+      if(c.mid-prev>=PANEL.minPanel){ keep.push(c.mid); half.push(c.half); prev=c.mid; }
+    }
+    while(keep.length && 1-trimB-keep[keep.length-1]<PANEL.minPanel){ keep.pop(); half.pop(); }
+    return { cuts:keep, half, trimA, trimB };
+  };
+
+  const V=dir(true), Hh=dir(false);
+  out.cols=V.cuts; out.rows=Hh.cuts;
+  out.colHalf=V.half; out.rowHalf=Hh.half;
+  out.trim={ l:V.trimA, r:V.trimB, t:Hh.trimA, b:Hh.trimB };
+  out.panels=(out.cols.length+1)*(out.rows.length+1);
+  out.why = out.panels>1
+    ? `${out.panels} panels found: a gutter runs the whole way ${out.cols.length?'down':'across'} the frame.`
+    : (W/H>1.45 ? 'Wide frame, but no gutter runs the whole way down it. If this is two photographs butted together, cut it by hand.'
+                : '');
+  return out;
+}
+
+/* the boxes, in source pixels. Each cut is a pair of edges, so the
+   gutter itself lands on neither panel. */
+function panelEdges(cuts,half,t0,t1){
+  const lo=[t0], hi=[];
+  cuts.forEach((c,k)=>{ const g=(half&&half[k])||0; hi.push(c-g); lo.push(c+g); });
+  hi.push(1-t1);
+  return { lo, hi };
+}
+function panelBoxes(p){
+  const X=panelEdges(p.cols,p.colHalf,p.trim.l,p.trim.r);
+  const Y=panelEdges(p.rows,p.rowHalf,p.trim.t,p.trim.b);
+  const out=[];
+  for(let j=0;j<Y.lo.length;j++) for(let i=0;i<X.lo.length;i++)
+    out.push({ x:Math.round(X.lo[i]*p.w), y:Math.round(Y.lo[j]*p.h),
+               w:Math.max(1,Math.round((X.hi[i]-X.lo[i])*p.w)),
+               h:Math.max(1,Math.round((Y.hi[j]-Y.lo[j])*p.h)) });
+  return out;
+}
+
+let PICS=[];
+
+$('#file').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f) load(f); };
+const drop=$('#drop');
+drop.onclick=()=>$('#file').click();
+drop.ondragover=e=>{ e.preventDefault(); drop.classList.add('on'); };
+drop.ondragleave=()=>drop.classList.remove('on');
+drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove('on');
+  const f=e.dataTransfer.files[0]; if(f) load(f); };
+
+async function load(file){
+  $('#status').textContent='Opening '+file.name+'…';
+  $('#picsBox').classList.add('hide'); $('#opts').classList.add('hide');
+  $('#textBox').classList.add('hide'); $('#warnBox').classList.add('hide');
+  PICS=[];
+  let zip;
+  try{ zip=await readZip(await file.arrayBuffer()); }
+  catch(err){ $('#status').textContent='Could not open that: '+err.message; return; }
+
+  /* which media each slide uses, and whether the slide cropped it */
+  const crops=new Map();          // media name → {l,t,r,b}
+  const slideText=[];
+  const slides=zip.names.filter(n=>/^ppt\/(slides|notesSlides)\/[^/]+\.xml$/.test(n)).sort();
+  for(const sn of slides){
+    const xml=dec.decode(await zip.get(sn)||new Uint8Array());
+    for(const m of xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)){
+      const t=m[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
+      if(t) slideText.push(t);
+    }
+    const rels=zip.names.includes(sn.replace(/([^/]+)$/,'_rels/$1.rels'))
+      ? dec.decode(await zip.get(sn.replace(/([^/]+)$/,'_rels/$1.rels')))
+      : '';
+    const map=new Map();
+    for(const m of rels.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g))
+      map.set(m[1], m[2].replace(/^\.\.\//,'ppt/').replace(/^\//,''));
+    /* a picture element carries its blip and, when cropped, a srcRect */
+    for(const m of xml.matchAll(/<p:pic>[\s\S]*?<\/p:pic>/g)){
+      const pic=m[0];
+      const rid=(pic.match(/r:embed="([^"]+)"/)||[])[1];
+      if(!rid) continue;
+      const target=map.get(rid); if(!target) continue;
+      const sr=pic.match(/<a:srcRect([^/>]*)\/?>/);
+      if(sr){
+        const g=k=>{ const q=sr[1].match(new RegExp(k+'="(-?\\d+)"')); return q?+q[1]/100000:0; };
+        const c={ l:g('l'), t:g('t'), r:g('r'), b:g('b') };
+        if(c.l||c.t||c.r||c.b) crops.set(target,c);
+      }
+    }
+  }
+  for(const nn of zip.names.filter(n=>/^ppt\/notesSlides\//.test(n))){ /* counted above */ }
+
+  const media=zip.names.filter(n=>/^ppt\/media\//.test(n));
+  if(!media.length){ $('#status').textContent='No pictures in that deck.'; return; }
+
+  $('#status').textContent=`Reading ${media.length} picture${media.length===1?'':'s'}…`;
+  let k=0;
+  for(const name of media){
+    const ext=EXT[(name.split('.').pop()||'').toLowerCase()];
+    const bytes=await zip.get(name);
+    if(!bytes) continue;
+    const mime=MIME[ext];
+    if(!mime){ PICS.push({ name, bytes, ext:ext||'bin', skip:true }); continue; }
+    const url=URL.createObjectURL(new Blob([bytes],{type:mime}));
+    const im=new Image();
+    await new Promise(r=>{ im.onload=r; im.onerror=r; im.src=url; });
+    const pic={ name, bytes, ext, mime, url, im,
+                w:im.naturalWidth, h:im.naturalHeight,
+                crop:crops.get(name)||null, pick:true, split:false };
+    try{ pic.pan=findPanels(im,pic.w,pic.h); }catch{ pic.pan=null; }
+    pic.split=!!(pic.pan&&pic.pan.panels>1);
+    PICS.push(pic);
+    $('#status').textContent=`Reading ${++k} of ${media.length}…`;
+  }
+  render();
+
+  const words=slideText.join('\n');
+  $('#text').innerHTML=words
+    ? words.split('\n').map(t=>esc(t).replace(
+        /(\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b|\b(19|20)\d{2}\b|\b[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\b|\b\d{4,}\b)/g,
+        '<span class="hit">$1</span>')).join('\n')
+    : '<span class="note">No text in the slides.</span>';
+  $('#textBox').classList.remove('hide');
+  $('#warnBox').classList.remove('hide');
+  $('#opts').classList.remove('hide');
+  const cropped=PICS.filter(p=>p.crop).length;
+  const multi=PICS.filter(p=>p.pan&&p.pan.panels>1).length;
+  const wide=PICS.filter(p=>p.pan&&p.pan.panels===1&&/no gutter/.test(p.pan.why)).length;
+  $('#status').innerHTML=`<b>${PICS.filter(p=>!p.skip).length} pictures.</b>`+
+    (cropped?` ${cropped} of them cropped on a slide.`:'')+
+    (multi?` ${multi} hold more than one photograph.`:'')+
+    (wide?` ${wide} are wide with no gutter: check those by hand.`:'')+
+    (PICS.some(p=>p.skip)?` ${PICS.filter(p=>p.skip).length} in a format this page cannot open.`:'');
+}
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function render(){
+  const host=$('#pics'); host.innerHTML='';
+  PICS.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='pic'+(p.pick?'':' off');
+    const box=document.createElement('div'); box.className='im';
+    if(p.url){
+      const hold=document.createElement('div'); hold.className='hold';
+      const im=document.createElement('img'); im.src=p.url; hold.append(im);
+      if(p.split&&p.pan){
+        for(const c of p.pan.cols){ const l=document.createElement('i');
+          l.className='cut v'; l.style.left=(100*c)+'%'; hold.append(l); }
+        for(const r of p.pan.rows){ const l=document.createElement('i');
+          l.className='cut h'; l.style.top=(100*r)+'%'; hold.append(l); }
+      }
+      box.append(hold);
+    }
+    else box.innerHTML='<span style="color:#9aa0aa;font-size:12px">'+esc(p.ext)+'</span>';
+    d.append(box);
+    const m=document.createElement('div'); m.className='meta';
+    m.innerHTML=`<b>${esc(p.name.replace('ppt/media/',''))}</b>`+
+      (p.w?`${p.w}×${p.h} px · ${(p.bytes.length/1024).toFixed(0)} KB`:`${(p.bytes.length/1024).toFixed(0)} KB`)+
+      (p.crop?`<br><span class="crop">cropped on a slide: ${Math.round(100*(p.crop.l+p.crop.r))}% across, ${Math.round(100*(p.crop.t+p.crop.b))}% down</span>`:'')+
+      (p.pan&&p.pan.panels>1?`<br><span class="multi">${p.pan.panels} photographs in this file</span>`:'')+
+      (p.pan&&p.pan.panels===1&&p.pan.why?`<br><span class="crop">${esc(p.pan.why)}</span>`:'')+
+      (p.skip?'<br><span class="crop">this page cannot open this format</span>':'');
+    d.append(m);
+    if(!p.skip){
+      const pk=document.createElement('label'); pk.className='pick';
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=p.pick;
+      cb.onchange=()=>{ p.pick=cb.checked; render(); };
+      pk.append(cb, document.createTextNode('include'));
+      d.append(pk);
+      const row=document.createElement('div'); row.className='pick';
+      if(p.pan&&(p.pan.cols.length||p.pan.rows.length)){
+        const sl=document.createElement('label');
+        sl.style.cssText='display:flex;gap:6px;align-items:center';
+        const sc=document.createElement('input'); sc.type='checkbox'; sc.checked=p.split;
+        sc.onchange=()=>{ p.split=sc.checked; render(); };
+        sl.append(sc, document.createTextNode('split'));
+        row.append(sl);
+      }
+      const ed=document.createElement('button'); ed.className='btn';
+      ed.style.cssText='padding:3px 9px;font-size:11.5px';
+      ed.textContent=(p.pan&&(p.pan.cols.length||p.pan.rows.length))?'check the cut':'cut by hand';
+      ed.onclick=()=>openCutter(i);
+      row.append(ed);
+      d.append(row);
+    }
+    host.append(d);
+  });
+  $('#picsBox').classList.remove('hide');
+  const n=PICS.filter(p=>p.pick&&!p.skip).length;
+  $('#picked').textContent=n+' picked';
+  $('#btnZip').disabled=!n;
+}
+
+/* ── checking a cut by eye ──────────────────────────────────────────
+   The detector proposes. Nothing is cut until it has been looked at,
+   because a line through a face is worse than no line at all. */
+let CUT=null;
+function openCutter(i){
+  const p=PICS[i]; if(!p||p.skip) return;
+  CUT={ i, cols:[...(p.pan?p.pan.cols:[])], rows:[...(p.pan?p.pan.rows:[])] };
+  const bg=$('#cutBg'), im=$('#cutImg');
+  im.src=p.url;
+  $('#cutName').textContent=p.name.replace('ppt/media/','')+` · ${p.w}×${p.h}`;
+  bg.classList.remove('hide');
+  drawCut();
+}
+function drawCut(){
+  const host=$('#cutLines'); host.innerHTML='';
+  const mk=(cls,pos,arr,k)=>{
+    const l=document.createElement('i');
+    l.className='cut drag '+cls;
+    if(cls==='v') l.style.left=(100*pos)+'%'; else l.style.top=(100*pos)+'%';
+    l.onpointerdown=e=>{
+      e.preventDefault(); l.setPointerCapture(e.pointerId);
+      const box=$('#cutWrap').getBoundingClientRect();
+      const move=ev=>{
+        const t=cls==='v' ? (ev.clientX-box.left)/box.width : (ev.clientY-box.top)/box.height;
+        arr[k]=Math.max(0.03,Math.min(0.97,t));
+        arr.sort((a,b)=>a-b);
+        drawCut();
+      };
+      const up=()=>{ l.removeEventListener('pointermove',move); l.removeEventListener('pointerup',up); };
+      l.addEventListener('pointermove',move); l.addEventListener('pointerup',up);
+    };
+    l.ondblclick=()=>{ arr.splice(k,1); drawCut(); };
+    host.append(l);
+  };
+  CUT.cols.forEach((c,k)=>mk('v',c,CUT.cols,k));
+  CUT.rows.forEach((r,k)=>mk('h',r,CUT.rows,k));
+  $('#cutCount').textContent=`${(CUT.cols.length+1)*(CUT.rows.length+1)} photograph`+
+    (((CUT.cols.length+1)*(CUT.rows.length+1))===1?'':'s');
+}
+$('#cutAddV').onclick=()=>{ CUT.cols.push(0.5); CUT.cols.sort((a,b)=>a-b); drawCut(); };
+$('#cutAddH').onclick=()=>{ CUT.rows.push(0.5); CUT.rows.sort((a,b)=>a-b); drawCut(); };
+$('#cutClear').onclick=()=>{ CUT.cols=[]; CUT.rows=[]; drawCut(); };
+$('#cutCancel').onclick=()=>$('#cutBg').classList.add('hide');
+$('#cutOk').onclick=()=>{
+  const p=PICS[CUT.i];
+  p.pan=p.pan||{ w:p.w, h:p.h, trim:{l:0,t:0,r:0,b:0}, why:'' };
+  p.pan.cols=[...CUT.cols]; p.pan.rows=[...CUT.rows];
+  p.pan.colHalf=CUT.cols.map(()=>0); p.pan.rowHalf=CUT.rows.map(()=>0);
+  p.pan.panels=(CUT.cols.length+1)*(CUT.rows.length+1);
+  p.pan.why=p.pan.panels>1?'cut by hand':'';
+  p.split=p.pan.panels>1;
+  $('#cutBg').classList.add('hide');
+  render();
+};
+$('#cutBg').onclick=e=>{ if(e.target.id==='cutBg') $('#cutBg').classList.add('hide'); };
+
+$('#btnAll').onclick=()=>{ PICS.forEach(p=>{ if(!p.skip) p.pick=true; }); render(); };
+$('#btnNone').onclick=()=>{ PICS.forEach(p=>p.pick=false); render(); };
+
+/* redrawing through a canvas is what drops the metadata: the pixels are
+   copied, nothing else is */
+async function bake(p,useCrop,box){
+  const c=useCrop&&p.crop?p.crop:{l:0,t:0,r:0,b:0};
+  let sx=Math.round(p.w*c.l), sy=Math.round(p.h*c.t);
+  let sw=Math.max(1,Math.round(p.w*(1-c.l-c.r))), sh=Math.max(1,Math.round(p.h*(1-c.t-c.b)));
+  /* one panel of a file that held several. The slide crop is ignored
+     here: a composite was pasted whole, so cropping it and then cutting
+     it would cut the wrong place. */
+  if(box){ sx=box.x; sy=box.y; sw=box.w; sh=box.h; }
+  const cv=document.createElement('canvas'); cv.width=sw; cv.height=sh;
+  cv.getContext('2d').drawImage(p.im,sx,sy,sw,sh,0,0,sw,sh);
+  const png=p.ext==='png';
+  const blob=await new Promise(r=>cv.toBlob(r, png?'image/png':'image/jpeg', png?undefined:0.95));
+  return { bytes:new Uint8Array(await blob.arrayBuffer()), ext:png?'png':'jpg' };
+}
+
+/* a stored (uncompressed) zip. A JPEG does not compress, so there is
+   nothing lost and no deflate to write. */
+function crc32(u){
+  let c, t=crc32.t;
+  if(!t){ t=crc32.t=new Uint32Array(256);
+    for(let n=0;n<256;n++){ c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } }
+  let x=0xFFFFFFFF;
+  for(let i=0;i<u.length;i++) x=t[(x^u[i])&0xFF]^(x>>>8);
+  return (x^0xFFFFFFFF)>>>0;
+}
+function makeZip(files){
+  const parts=[], dir=[]; let off=0;
+  const put=(arr)=>{ parts.push(arr); off+=arr.length; };
+  const now=new Date();
+  const dosT=((now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1))&0xFFFF;
+  const dosD=(((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate())&0xFFFF;
+  for(const f of files){
+    const nm=enc.encode(f.name), crc=crc32(f.bytes), n=f.bytes.length;
+    const lh=new Uint8Array(30+nm.length), v=new DataView(lh.buffer);
+    v.setUint32(0,0x04034b50,true); v.setUint16(4,20,true); v.setUint16(6,0,true);
+    v.setUint16(8,0,true); v.setUint16(10,dosT,true); v.setUint16(12,dosD,true);
+    v.setUint32(14,crc,true); v.setUint32(18,n,true); v.setUint32(22,n,true);
+    v.setUint16(26,nm.length,true); v.setUint16(28,0,true);
+    lh.set(nm,30);
+    const at=off; put(lh); put(f.bytes);
+    const ch=new Uint8Array(46+nm.length), w=new DataView(ch.buffer);
+    w.setUint32(0,0x02014b50,true); w.setUint16(4,20,true); w.setUint16(6,20,true);
+    w.setUint16(8,0,true); w.setUint16(10,0,true); w.setUint16(12,dosT,true);
+    w.setUint16(14,dosD,true); w.setUint32(16,crc,true); w.setUint32(20,n,true);
+    w.setUint32(24,n,true); w.setUint16(28,nm.length,true);
+    w.setUint32(42,at,true); ch.set(nm,46);
+    dir.push(ch);
+  }
+  const dirAt=off; let dirLen=0;
+  for(const d of dir){ put(d); dirLen+=d.length; }
+  const end=new Uint8Array(22), e=new DataView(end.buffer);
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,dir.length,true); e.setUint16(10,dir.length,true);
+  e.setUint32(12,dirLen,true); e.setUint32(16,dirAt,true);
+  put(end);
+  return new Blob(parts,{type:'application/zip'});
+}
+
+$('#btnZip').onclick=async()=>{
+  const picks=PICS.filter(p=>p.pick&&!p.skip);
+  if(!picks.length) return;
+  const strip=$('#oStrip').checked, useCrop=$('#oCrop').checked;
+  const rename=$('#oRename').checked, prefix=($('#oPrefix').value||'CASE').replace(/[^\w-]/g,'');
+  $('#status').textContent='Writing…';
+  const files=[]; let i=0; let cut=0;
+  const letters='abcdefghijklmnop';
+  for(const p of picks){
+    i++;
+    const boxes=(p.split&&p.pan&&(p.pan.cols.length||p.pan.rows.length))
+      ? panelBoxes({ ...p.pan, w:p.w, h:p.h }) : null;
+    if(boxes&&boxes.length>1){
+      cut++;
+      for(let k=0;k<boxes.length;k++){
+        const b=await bake(p,useCrop,boxes[k]);
+        const nm=rename ? `${prefix}-${String(i).padStart(3,'0')}${letters[k]||k}.${b.ext}`
+          : p.name.replace('ppt/media/','').replace(/(\.[^.]+)$/,`-${letters[k]||k}$1`);
+        files.push({ name:nm, bytes:b.bytes });
+      }
+      continue;
+    }
+    let bytes=p.bytes, ext=p.ext;
+    if(strip||(useCrop&&p.crop)){
+      try{ const b=await bake(p,useCrop); bytes=b.bytes; ext=b.ext; }catch{}
+    }
+    const nm=rename ? `${prefix}-${String(i).padStart(3,'0')}.${ext}`
+                    : p.name.replace('ppt/media/','');
+    files.push({ name:nm, bytes });
+  }
+  const blob=makeZip(files);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`photos-${new Date().toISOString().slice(0,10)}.zip`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  $('#status').innerHTML=`<b>${files.length} pictures written`+
+    (cut?` from ${picks.length} files, ${cut} of them cut apart`:'')+`.</b>`+
+    (strip?' Camera metadata stripped.':' <span style="color:var(--bad)">Camera metadata left on.</span>')+
+    (useCrop?' Slide crops applied.':' Full original frames.');
+};
+</script>
+</body>
+</html>
